@@ -101,12 +101,11 @@ func (fl *File) transportHTTP(conf *Config) error {
 	if len(fl.TransportHTTP.Host) < 1 {
 		return nil
 	}
-	conf.TransportHTTP.Host = fl.TransportHTTP.Host
 
-	// Keep-alive duration
-	conf.TransportHTTP.KeepAliveDuration = time.Duration(
-		fl.TransportHTTP.KeepAliveDuration,
-	)
+	conf.TransportHTTP = &TransportHTTP{
+		Host:              fl.TransportHTTP.Host,
+		KeepAliveDuration: time.Duration(fl.TransportHTTP.KeepAliveDuration),
+	}
 
 	// TLS
 	if fl.TransportHTTP.TLS.Enabled {
