@@ -1,0 +1,136 @@
+package apitest
+
+import (
+	"archive/zip"
+	"bytes"
+	"io"
+	"io/ioutil"
+	"mime/multipart"
+	"net/http"
+	"testing"
+
+	"zipapi/apitest/setup"
+	"zipapi/store"
+	mockstore "zipapi/store/mock"
+
+	"github.com/stretchr/testify/require"
+)
+
+type File struct {
+	Name     string
+	Contents []byte
+	Params   map[string]string
+}
+
+// Creates a new file upload http request with optional extra params
+func newfileUploadRequest(
+	t *testing.T,
+	files ...File,
+) *http.Request {
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+
+	for _, fl := range files {
+		part, err := writer.CreateFormFile(fl.Name, fl.Name)
+		require.NoError(t, err)
+		_, err = io.Copy(part, bytes.NewBuffer(fl.Contents))
+		require.NoError(t, err)
+
+		for key, val := range fl.Params {
+			require.NoError(t, writer.WriteField(key, val))
+		}
+	}
+
+	require.NoError(t, writer.Close())
+
+	req, err := http.NewRequest("POST", "", body)
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	return req
+}
+
+func checkFiles(
+	ts *setup.TestSetup,
+	expectedFiles []File,
+	actualArchive []byte,
+) {
+	t := ts.T()
+
+	str := ts.APIServer().Store().(*mockstore.Store)
+
+	findFile := func(fl File) *store.File {
+		for _, savedFile := range str.SavedFiles {
+			if savedFile.Name == fl.Name {
+				return &savedFile
+			}
+		}
+		return nil
+	}
+
+	// Make sure the files were saved to the store
+	require.Len(t, str.SavedFiles, len(expectedFiles))
+	for _, expectedFile := range expectedFiles {
+		actualFile := findFile(expectedFile)
+		require.NotNil(t, actualFile)
+	}
+
+	// Unarchive files
+	archReader, err := zip.NewReader(
+		bytes.NewReader(actualArchive),
+		int64(len(actualArchive)),
+	)
+	require.NoError(t, err)
+
+	findExpected := func(flName string) *File {
+		for _, expected := range expectedFiles {
+			if expected.Name == flName {
+				return &expected
+			}
+		}
+		return nil
+	}
+
+	for _, fl := range archReader.File {
+		expected := findExpected(fl.Name)
+		require.NotNil(t, expected)
+
+		flReader, err := fl.Open()
+		require.NoError(t, err)
+		defer flReader.Close()
+
+		bt, err := ioutil.ReadAll(flReader)
+		require.NoError(t, err)
+
+		require.Equal(t, expected.Contents, bt)
+	}
+}
+
+// TestPostArchive tests POST /archive sending 2 .txt files
+func TestPostArchive(t *testing.T) {
+	ts := setup.New(t, nil)
+	defer ts.Teardown()
+
+	files := []File{
+		File{
+			Name:     "foo.txt",
+			Contents: []byte("foo foo foo"),
+		}, File{
+			Name:     "bar.txt",
+			Contents: []byte("bar bar bar bar"),
+		},
+	}
+
+	// Prepare input files
+	req := newfileUploadRequest(t, files...)
+
+	// Make request
+	req.URL.Path = "/archive"
+	resp := ts.Guest().Do(req)
+
+	require.Equal(t, resp.StatusCode, http.StatusOK)
+
+	actual, err := ioutil.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	checkFiles(ts, files, actual)
+}
