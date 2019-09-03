@@ -1,0 +1,26 @@
+# zipapi server configuration (DEBUG)
+
+mode = "debug"
+
+[log]
+debug = "stdout"
+error = "stderr"
+
+[transport-http]
+host = "localhost:8080"
+keep-alive = "3min"
+
+[transport-http.tls]
+enabled = true
+min-version = "TLS 1.2"
+curve-preferences = [
+	"X25519",
+	"CurveP256"
+]
+cipher-suites = [
+	"ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+	"ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+	"AES_128_GCM_SHA256"
+]
+certificate-file = "./zipapi.crt"
+key-file = "./zipapi.key"
