@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"zipapi/store"
+	"github.com/romshark/zipapi/store"
 
 	"github.com/pkg/errors"
 )

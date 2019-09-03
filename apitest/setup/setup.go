@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"zipapi/api"
-	"zipapi/api/config"
+	"github.com/romshark/zipapi/api"
+	"github.com/romshark/zipapi/api/config"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

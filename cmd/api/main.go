@@ -7,8 +7,8 @@ import (
 	"os"
 	"os/signal"
 
-	zipapi "zipapi/api"
-	"zipapi/api/config"
+	zipapi "github.com/romshark/zipapi/api"
+	"github.com/romshark/zipapi/api/config"
 )
 
 var argConfigFile = flag.String(

@@ -5,9 +5,9 @@ import (
 	"net"
 	"net/http"
 
-	"zipapi/api/config"
-	"zipapi/store"
-	storemock "zipapi/store/mock"
+	"github.com/romshark/zipapi/api/config"
+	"github.com/romshark/zipapi/store"
+	storemock "github.com/romshark/zipapi/store/mock"
 
 	"github.com/pkg/errors"
 )

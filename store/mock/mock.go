@@ -1,7 +1,7 @@
 package mock
 
 import (
-	"zipapi/store"
+	"github.com/romshark/zipapi/store"
 )
 
 // Store represents an in-memory store mock-implementation

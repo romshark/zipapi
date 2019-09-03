@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"testing"
 
-	"zipapi/apitest/setup"
-	"zipapi/store"
-	mockstore "zipapi/store/mock"
+	"github.com/romshark/zipapi/apitest/setup"
+	"github.com/romshark/zipapi/store"
+	mockstore "github.com/romshark/zipapi/store/mock"
 
 	"github.com/stretchr/testify/require"
 )
