@@ -33,7 +33,7 @@ script:
   - golint -set_exit_status $(go list ./...)
 
   # Build cmd/api
-  - go build -o api ./cmd/api
+  - go build -o zipapi ./cmd/zipapi
 
   # Run all the tests with the race detector enabled
   - overalls -project=github.com/romshark/zipapi -covermode=atomic -debug -- -race -v -coverpkg=./...
