@@ -2,6 +2,11 @@
 
 mode = "debug"
 
+[app]
+max-file-size = "8mb"
+max-req-size = "32mb"
+max-multipart-membuf = "2mb"
+
 [log]
 debug = "stdout"
 error = "stderr"

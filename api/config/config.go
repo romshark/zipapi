@@ -13,6 +13,7 @@ type Config struct {
 	TransportHTTP *TransportHTTP
 	DebugLog      *log.Logger
 	ErrorLog      *log.Logger
+	App           App
 }
 
 // Init sets defaults and validates the configurations
@@ -45,6 +46,21 @@ func (conf *Config) Init() error {
 			"ERR: ",
 			log.Ldate|log.Ltime,
 		)
+	}
+
+	// Set default file size limit to 1mb
+	if conf.App.MaxFileSize == 0 {
+		conf.App.MaxFileSize = 1024 * 1024
+	}
+
+	// Set default request size limit to 4mb
+	if conf.App.MaxReqSize == 0 {
+		conf.App.MaxReqSize = 1024 * 1024 * 4
+	}
+
+	// Set default multipart memoery buffer to 1mb
+	if conf.App.MaxMultipartMembuf == 0 {
+		conf.App.MaxMultipartMembuf = 1024 * 1024
 	}
 
 	// VALIDATE

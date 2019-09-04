@@ -3,6 +3,7 @@ package api
 import (
 	"archive/zip"
 	"compress/flate"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"mime"
@@ -46,11 +47,27 @@ func (srv *server) postArchive(
 	startTime := time.Now()
 	userAgent := in.Header.Get("User-Agent")
 
-	// Limit total form size to 32 mb
-	in.Body = http.MaxBytesReader(out, in.Body, 1024*1024*32)
+	// Limit total form size
+	in.Body = http.MaxBytesReader(
+		out,
+		in.Body,
+		int64(srv.conf.App.MaxReqSize),
+	)
 
 	// Parse inputs
-	if err := in.ParseMultipartForm(1024 * 1024 * 8); err != nil {
+	if err := in.ParseMultipartForm(
+		int64(srv.conf.App.MaxMultipartMembuf),
+	); err != nil {
+		// This is damn ugly, but there seems to be no way around
+		// comparing the error string
+		if err.Error() == "http: request body too large" {
+			http.Error(
+				out,
+				"request body too large",
+				http.StatusBadRequest,
+			)
+			return nil
+		}
 		return errors.Wrap(err, "parsing multipart/form-data")
 	}
 
@@ -79,6 +96,20 @@ func (srv *server) postArchive(
 	}
 
 	for flName, fl := range in.MultipartForm.File {
+		// Check file size
+		if uint64(fl[0].Size) > srv.conf.App.MaxFileSize {
+			http.Error(
+				out,
+				fmt.Sprintf(
+					"file '%s' exceeds max file size (%d)",
+					flName,
+					srv.conf.App.MaxFileSize,
+				),
+				http.StatusBadRequest,
+			)
+			return nil
+		}
+
 		file, err := fl[0].Open()
 		if err != nil {
 			return errors.Wrapf(

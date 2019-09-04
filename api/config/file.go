@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/c2h5oh/datasize"
 	"github.com/pkg/errors"
 )
 
@@ -32,6 +33,11 @@ type File struct {
 			CipherSuites     []TLSCipherSuite `toml:"cipher-suites"`
 		} `toml:"tls"`
 	} `toml:"transport-http"`
+	App struct {
+		MaxReqSize         string `toml:"max-req-size"`
+		MaxFileSize        string `toml:"max-file-size"`
+		MaxMultipartMembuf string `toml:"max-multipart-membuf"`
+	} `toml:"app"`
 }
 
 func (fl *File) mode(conf *Config) error {
@@ -142,6 +148,39 @@ func (fl *File) transportHTTP(conf *Config) error {
 	return nil
 }
 
+func parseFileSize(str string) (uint64, error) {
+	if str == "" {
+		return 0, nil
+	}
+
+	// Parse
+	var v datasize.ByteSize
+	if err := v.UnmarshalText([]byte(str)); err != nil {
+		return 0, err
+	}
+	return uint64(v), nil
+}
+
+func (fl *File) app(conf *Config) error {
+	var err error
+	conf.App.MaxReqSize, err = parseFileSize(fl.App.MaxReqSize)
+	if err != nil {
+		return errors.Wrap(err, "parsing app.max-req-size")
+	}
+
+	conf.App.MaxFileSize, err = parseFileSize(fl.App.MaxFileSize)
+	if err != nil {
+		return errors.Wrap(err, "parsing app.max-file-size")
+	}
+
+	conf.App.MaxMultipartMembuf, err = parseFileSize(fl.App.MaxMultipartMembuf)
+	if err != nil {
+		return errors.Wrap(err, "parsing app.max-multipart-membuf")
+	}
+
+	return nil
+}
+
 // FromFile reads the configuration from a file
 func FromFile(path string) (*Config, error) {
 	var file File
@@ -157,6 +196,7 @@ func FromFile(path string) (*Config, error) {
 		"log.debug":      file.debugLog,
 		"log.error":      file.errorLog,
 		"transport-http": file.transportHTTP,
+		"app":            file.app,
 	} {
 		if err := setter(conf); err != nil {
 			return nil, errors.Wrap(err, setterName)
