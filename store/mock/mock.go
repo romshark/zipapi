@@ -21,8 +21,6 @@ func (str *Store) Init() error { return nil }
 
 // SaveFiles implements the Store interface
 func (str *Store) SaveFiles(files ...store.File) error {
-	for _, fl := range files {
-		str.SavedFiles = append(str.SavedFiles, fl)
-	}
+	str.SavedFiles = append(str.SavedFiles, files...)
 	return nil
 }
