@@ -154,7 +154,7 @@ func (srv *server) ServeHTTP(out http.ResponseWriter, in *http.Request) {
 
 	if err := handler(out, in); err != nil {
 		// Log internal errors and return '500 Internal Server Error'
-		srv.conf.ErrorLog.Printf(
+		srv.logErrf(
 			"internal error: (%s '%s'): %s",
 			in.URL.Path,
 			in.Method,
