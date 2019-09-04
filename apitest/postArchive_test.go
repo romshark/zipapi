@@ -128,7 +128,7 @@ func TestPostArchive(t *testing.T) {
 	req.URL.Path = "/archive"
 	resp := ts.Guest().Do(req)
 
-	require.Equal(t, resp.StatusCode, http.StatusOK)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	actual, err := ioutil.ReadAll(resp.Body)
 	require.NoError(t, err)
