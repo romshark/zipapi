@@ -68,6 +68,16 @@ func (srv *server) postArchive(
 
 	files := make([]store.File, 0, len(in.MultipartForm.File))
 
+	if len(in.MultipartForm.File) < 1 {
+		// Missing files
+		http.Error(
+			out,
+			http.StatusText(http.StatusBadRequest),
+			http.StatusBadRequest,
+		)
+		return nil
+	}
+
 	for flName, fl := range in.MultipartForm.File {
 		file, err := fl[0].Open()
 		if err != nil {
