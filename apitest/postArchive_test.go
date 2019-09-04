@@ -3,6 +3,7 @@ package apitest
 import (
 	"archive/zip"
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -133,4 +134,51 @@ func TestPostArchive(t *testing.T) {
 	require.NoError(t, err)
 
 	checkFiles(ts, files, actual)
+}
+
+// TestPostArchiveErr tests POST /archive errors
+func TestPostArchiveErr(t *testing.T) {
+	// NonMultipart
+	t.Run("NonMultipart", func(t *testing.T) {
+		mimeTypes := []string{
+			"",
+			"application/json",
+			"text/plain",
+			"image/jpeg",
+		}
+
+		for _, mimeType := range mimeTypes {
+			t.Run(fmt.Sprintf("'%s'", mimeType), func(t *testing.T) {
+				ts := setup.New(t, nil)
+				defer ts.Teardown()
+
+				// Prepare input files
+				req, err := http.NewRequest("POST", "", nil)
+				require.NoError(t, err)
+				req.Header.Set("Content-Type", mimeType)
+				require.Equal(t, mimeType, req.Header.Get("Content-Type"))
+
+				// Make request
+				req.URL.Path = "/archive"
+				resp := ts.Guest().Do(req)
+
+				require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+			})
+		}
+	})
+
+	// NoFiles tests sending an empty multipart/form-data request
+	t.Run("NoFiles", func(t *testing.T) {
+		ts := setup.New(t, nil)
+		defer ts.Teardown()
+
+		// Prepare input files
+		req := newfileUploadRequest(t)
+
+		// Make request
+		req.URL.Path = "/archive"
+		resp := ts.Guest().Do(req)
+
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
 }
