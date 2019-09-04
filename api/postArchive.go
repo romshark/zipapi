@@ -5,6 +5,7 @@ import (
 	"compress/flate"
 	"io"
 	"io/ioutil"
+	"mime"
 	"net/http"
 	"time"
 
@@ -17,6 +18,31 @@ func (srv *server) postArchive(
 	out http.ResponseWriter,
 	in *http.Request,
 ) error {
+	// Make sure the content-type header is set
+	contentTypeHeader := in.Header.Get("Content-Type")
+	if contentTypeHeader == "" {
+		http.Error(
+			out,
+			http.StatusText(http.StatusBadRequest),
+			http.StatusBadRequest,
+		)
+		return nil
+	}
+
+	// Validate content-type
+	contentType, _, err := mime.ParseMediaType(contentTypeHeader)
+	if err != nil {
+		return errors.Wrap(err, "parsing content-type header")
+	}
+	if contentType != "multipart/form-data" {
+		http.Error(
+			out,
+			http.StatusText(http.StatusBadRequest),
+			http.StatusBadRequest,
+		)
+		return nil
+	}
+
 	startTime := time.Now()
 	userAgent := in.Header.Get("User-Agent")
 
