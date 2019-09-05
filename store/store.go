@@ -17,6 +17,12 @@ type File struct {
 
 // Store represents an abstract store
 type Store interface {
+	// Init initializes the store
 	Init() error
+
+	// SaveFiles saves the given files to the store
+	//
+	// This method is thread-safe and can safely be used by
+	// multiple goroutines concurrently
 	SaveFiles(files ...File) error
 }
