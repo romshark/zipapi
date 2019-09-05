@@ -47,7 +47,7 @@ func NewServer(conf *config.Config) (Server, error) {
 	}
 
 	// Initialize store instance
-	srv.store = storemock.New()
+	srv.store = new(storemock.Store)
 
 	if err := srv.store.Init(); err != nil {
 		return nil, errors.Wrap(err, "store preparation")

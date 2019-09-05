@@ -59,9 +59,10 @@ func checkFiles(
 	t := ts.T()
 
 	str := ts.APIServer().Store().(*mockstore.Store)
+	savedFiles := str.SavedFiles()
 
 	findFile := func(fl File) *store.File {
-		for _, savedFile := range str.SavedFiles {
+		for _, savedFile := range savedFiles {
 			if savedFile.Name == fl.Name {
 				return &savedFile
 			}
@@ -70,7 +71,7 @@ func checkFiles(
 	}
 
 	// Make sure the files were saved to the store
-	require.Len(t, str.SavedFiles, len(expectedFiles))
+	require.Len(t, savedFiles, len(expectedFiles))
 	for _, expectedFile := range expectedFiles {
 		actualFile := findFile(expectedFile)
 		require.NotNil(t, actualFile)
