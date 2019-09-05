@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/romshark/zipapi/api/config"
 	"github.com/romshark/zipapi/apitest/setup"
 	"github.com/romshark/zipapi/store"
 	mockstore "github.com/romshark/zipapi/store/mock"
@@ -174,6 +175,62 @@ func TestPostArchiveErr(t *testing.T) {
 
 		// Prepare input files
 		req := newfileUploadRequest(t)
+
+		// Make request
+		req.URL.Path = "/archive"
+		resp := ts.Guest().Do(req)
+
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	// FileTooBig tests sending a file exceeding the file-size limit
+	t.Run("FileTooBig", func(t *testing.T) {
+		conf := &config.Config{
+			App: config.App{
+				MaxFileSize:        1024,
+				MaxReqSize:         2048,
+				MaxMultipartMembuf: 2048,
+			},
+		}
+		ts := setup.New(t, conf)
+		defer ts.Teardown()
+
+		// Prepare input files
+		req := newfileUploadRequest(t, File{
+			Name:     "toolarge.txt",
+			Contents: make([]byte, conf.App.MaxFileSize+1),
+		})
+
+		// Make request
+		req.URL.Path = "/archive"
+		resp := ts.Guest().Do(req)
+
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	// ReqTooBig tests sending a request exceeding the req-size limit
+	t.Run("ReqTooBig", func(t *testing.T) {
+		conf := &config.Config{
+			App: config.App{
+				MaxFileSize:        1024,
+				MaxReqSize:         2048,
+				MaxMultipartMembuf: 2048,
+			},
+		}
+		ts := setup.New(t, conf)
+		defer ts.Teardown()
+
+		// Prepare input files
+		req := newfileUploadRequest(t, File{
+			Name:     "first.txt",
+			Contents: make([]byte, conf.App.MaxFileSize),
+		}, File{
+			Name:     "second.txt",
+			Contents: make([]byte, conf.App.MaxFileSize),
+		}, File{
+			Name:     "third.txt",
+			Contents: make([]byte, conf.App.MaxFileSize),
+		})
 
 		// Make request
 		req.URL.Path = "/archive"
