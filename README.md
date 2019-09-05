@@ -30,7 +30,7 @@ into a zip archive and returns it as a response.
 	- [x] Retain a history of all created Zip files and their contents **
 	- [ ] Expire created Zip files after a specific period of time ***
 	
-_\* CI was setup successfuly but [issue #1](https://github.com/romshark/zipapi/issues/1) couldn't yet be fixed properly._
+_\* CI was setup successfully but [issue #1](https://github.com/romshark/zipapi/issues/1) couldn't yet be fixed properly._
 
 _\** There's currently no database-backed persistency implementation but just a simple in-memory mock. Implementing one shouldn't be a problem though._
 
