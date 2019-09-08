@@ -26,15 +26,13 @@ into a zip archive and returns it as a response.
 	- [x] Limit the size of each uploaded file
 - Nice to have:
 	- [x] Provide automated API tests
-	- [x] CI *
-	- [x] Retain a history of all created Zip files and their contents **
-	- [ ] Expire created Zip files after a specific period of time ***
-	
-_\* CI was setup successfully but [issue #1](https://github.com/romshark/zipapi/issues/1) couldn't yet be fixed properly._
+	- [x] CI
+	- [x] Retain a history of all created Zip files and their contents *
+	- [ ] Expire created Zip files after a specific period of time **
 
-_\** There's currently no database-backed persistency implementation but just a simple in-memory mock. Implementing one shouldn't be a problem though._
+_\* There's currently no database-backed persistency implementation but just a simple in-memory mock. Implementing one shouldn't be a problem though._
 
-_\*** This service shouldn't be responsible for this problem. There must be a separate service that periodically goes over the database and cleans up expired files._
+_\** This service shouldn't be responsible for this problem. There must be a separate service that periodically goes over the database and cleans up expired files._
 
 ## Getting started
 
