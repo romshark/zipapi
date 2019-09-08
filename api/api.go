@@ -55,15 +55,16 @@ func NewServer(conf *config.Config) (Server, error) {
 
 	// Initialize HTTP server
 	srv.httpSrv = &http.Server{
-		Addr:     conf.TransportHTTP.Host,
-		ErrorLog: conf.ErrorLog,
-		Handler:  srv,
+		Addr:        conf.TransportHTTP.Host,
+		ErrorLog:    conf.ErrorLog,
+		Handler:     srv,
+		IdleTimeout: conf.TransportHTTP.KeepAliveDuration,
 	}
 	if conf.TransportHTTP.TLS != nil {
 		srv.httpSrv.TLSConfig = conf.TransportHTTP.TLS.Config.Clone()
 	}
 
-	// Initialize the TCP listener
+	// Initialize and bind the TCP listener
 	addr := srv.httpSrv.Addr
 	if addr == "" {
 		addr = ":http"
@@ -73,11 +74,7 @@ func NewServer(conf *config.Config) (Server, error) {
 		return nil, errors.Wrap(err, "TCP listener setup")
 	}
 	srv.httpSrv.Addr = listener.Addr().String()
-
-	srv.tcpListener = tcpKeepAliveListener{
-		TCPListener:       listener.(*net.TCPListener),
-		KeepAliveDuration: srv.conf.TransportHTTP.KeepAliveDuration,
-	}
+	srv.tcpListener = listener
 
 	return srv, nil
 }
